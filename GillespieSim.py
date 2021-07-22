@@ -7,6 +7,16 @@ import os
 from tqdm import tqdm
 from itertools import starmap
 
+# ___________________________________________ 
+# 
+# Code Wrtitten By Sergio Andrés Pachón Dotor
+# 2020
+# e-mail: sap9827@gmail.com
+# 
+# ___________________________________________
+
+
+
 class Gillespie:
 
 
