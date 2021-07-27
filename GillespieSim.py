@@ -63,20 +63,7 @@ class Gillespie:
             Performs Cesar Nieto et-al Gillespie algorithm
             for chemical reactions simulations.
         """
-        schema = self.create_schema()
-
-        try: 
-            os.remove(self.model_name)
-        except:
-            pass
-        try:
-            with open(self.model_name, mode='x') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=schema, delimiter='|')
-                writer.writeheader()
-                csvfile.close()
-        except:
-            print(f'File "{self.model_name}" already exist')
-            pass
+        schema = self.create_my_file()
 
         with open(self.model_name, mode='a', newline='') as f:
 
@@ -107,37 +94,8 @@ class Gillespie:
                         self.reaction_model.solve_eqs(tau=self.tau)
                         #
                         possible_reactions = self.reaction_model.show_q()[reactions_dict[q]]
-
-                        if 'create' not in possible_reactions.keys():
-                            pass
-
-                        elif 'create' in possible_reactions.keys():
-                            create_species = possible_reactions['create']
-                            [self.reaction_model.create(name=species) for species in create_species if species != None]
-
-
-                        if 'destroy' not in possible_reactions.keys():
-                            pass
-
-                        elif 'destroy' in possible_reactions.keys():
-                            destroy_species = possible_reactions['destroy']
-                            [self.reaction_model.destroy(name=species) for species in destroy_species if species != None]
-
-
-                        if 'activate' not in possible_reactions.keys():
-                            pass
-
-                        elif 'activate' in possible_reactions.keys():
-                            activate_species = possible_reactions['activate']
-                            [self.reaction_model.activate(name=species) for species in activate_species if species != None]
-
-
-                        if 'deactivate' not in possible_reactions.keys():
-                            pass
-
-                        elif 'deactivate' in possible_reactions.keys():
-                            deactivate_species = possible_reactions['deactivate']
-                            [self.reaction_model.deactivate(name=species) for species in deactivate_species if species != None]    
+                        
+                        self.react(reactions=possible_reactions)
 
                         self.time += self.tau
                         
@@ -162,6 +120,60 @@ class Gillespie:
                 self.reference_time = 0
                 # progress_bar.close()
         f.close()
+
+
+    def create_my_file(self):
+
+        schema = self.create_schema()
+
+        try: 
+            os.remove(self.model_name)
+        except:
+            pass
+        try:
+            with open(self.model_name, mode='x') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=schema, delimiter='|')
+                writer.writeheader()
+                csvfile.close()
+        except:
+            print(f'File "{self.model_name}" already exist')
+            pass
+
+        return schema
+
+
+    def react(self, reactions):
+
+        if 'create' not in reactions.keys():
+            pass
+
+        elif 'create' in reactions.keys():
+            create_species = reactions['create']
+            [self.reaction_model.create(name=species) for species in create_species if species != None]
+
+
+        if 'destroy' not in reactions.keys():
+            pass
+
+        elif 'destroy' in reactions.keys():
+            destroy_species = reactions['destroy']
+            [self.reaction_model.destroy(name=species) for species in destroy_species if species != None]
+
+
+        if 'activate' not in reactions.keys():
+            pass
+
+        elif 'activate' in reactions.keys():
+            activate_species = reactions['activate']
+            [self.reaction_model.activate(name=species) for species in activate_species if species != None]
+
+
+        if 'deactivate' not in reactions.keys():
+            pass
+
+        elif 'deactivate' in reactions.keys():
+            deactivate_species = reactions['deactivate']
+            [self.reaction_model.deactivate(name=species) for species in deactivate_species if species != None]
 
 
     def simulate_gillespie(self):
@@ -399,23 +411,6 @@ class Gillespie:
                 break
         return q
                 
-        
-    def create_file(self):
-
-        schema= self.create_schema()
-        try: 
-            os.remove(self.model_name)
-        except:
-            pass
-        try:
-            with open(self.model_name, mode='x') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=schema, delimiter='|')
-                writer.writeheader()
-                csvfile.close()
-        except:
-            print(f'File "{self.model_name}" already exist')
-            pass
-
 
     def create_schema(self):
         schema = copy.deepcopy(self.reaction_model.show_species())
@@ -455,10 +450,10 @@ class Gillespie:
         pass
 
 
-class Bacteria:
+class Cell(Gillespie):
 
     def __init__(self) -> None:
-        pass
+        super().__init__()
 
 
 class ReactionModel:
