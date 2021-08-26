@@ -111,6 +111,7 @@ class Gillespie:
                     if self.time + self.tau < self.reference_time:
 
                         self.reaction_model.solve_eqs(tau=self.tau)
+
                         possible_reactions = self.reaction_model.q[reactions_dict[q]]
                         self.react(reactions=possible_reactions)
 
@@ -148,99 +149,70 @@ class Gillespie:
             for chemical reaction and division simulations.
         """
 
-        time_array = []
-        mrna_array = []
-        size_array = []
-
-        mRNA=1
-        mRNA_c=100
-        mRNA_d=10
-        
-        # Tiempo actual de la simulación
-        # Tiempo de referencia para el próximo muestreo
-
-        schema = self.create_schema_for_division()
+        schema = self.create_my_file(mode='division')
 
         with open(self.model_name, mode='a', newline='') as f:
 
             writer = csv.DictWriter(f, fieldnames= schema, delimiter='|')
-            size = self.birth_size 
+            self.size = self.birth_size
 
-            while self.time < self.tmax:
-        
-                if mRNA == 0:
-
-                    mRNA_synth = (1/self.mu) * np.log(1 - (self.mu * np.log(np.random.rand())/(mRNA_c * size)))
-
-                    self.tau = np.min([mRNA_synth, self.reference_division_time])
-                    q = np.argmin([mRNA_synth, self.reference_division_time])
+            for cell in tqdm(range(1, self.cells+1)):
                 
-                elif mRNA > 0:
-                    
+                while self.time < self.tmax:
+                    reaction_q_copy = copy.deepcopy(self.reaction_model.q)
+                    possible_reactions = None
+                        
                     # _____Calculate Propensities_____ #
                     # - Discriminate between creation and degradataion
 
-                    mRNA_synth = (1/self.mu) * np.log(1 - (self.mu * np.log(np.random.rand())/(mRNA_c * size)))
-                    mRNA_deg = -(1/(mRNA_d * mRNA)) * np.log(np.random.rand())
+                    calculated_tau = self.calculate_sorted_tau()
+                    calculated_tau['reference_division_time'] = self.reference_division_time
 
-                    self.tau = np.min([mRNA_synth,mRNA_deg, self.reference_division_time])
-                    q = np.argmin([mRNA_synth,mRNA_deg, self.reference_division_time])
+                    warnings.simplefilter("ignore")
 
-                if self.time + self.tau < self.reference_time:
+                    calculated_tau_propensities = list(calculated_tau.values()) # Propensities
+                    reactions_dict = dict(enumerate(list(calculated_tau.keys())))
 
-                    size *= np.exp(self.mu*self.tau)
 
-                    if q == 0:
-                        mRNA += 1
-
-                    elif q == 1:
-                        mRNA -= 1
-                    
-                    elif q == 2:
-                        size /= 2
-                        self.reference_division_time = (1/self.mu) * np.log((size + np.random.normal(loc=1, scale=0.05))/size)
+                    self.tau = np.min(calculated_tau_propensities)
+                    q = np.argmin(calculated_tau_propensities)
+    
+                    if self.time + self.tau < self.reference_time:
+                        if reactions_dict[q] == 'reference_division_time':
+                            reaction_q_copy['reference_division_time'] = {'reference_division_time': {'':''}}
                         
-                        # ____
-                        mRNA = np.random.binomial(mRNA, 0.5)
+                        possible_reactions = reaction_q_copy[reactions_dict[q]]
 
-                    if q != 2:
+                        self.size *= np.exp(self.mu*self.tau)
+                        self.react(reactions=possible_reactions)     
+                        self.time += self.tau               
                         
-                        self.reference_division_time -= self.tau
+                    elif self.time + self.tau > self.reference_time:
 
-                    self.time += self.tau
-                    
-                    
-                elif self.time + self.tau > self.reference_time:
+                        self.reference_division_time -= (self.reference_time - self.time)
+                        self.size *= np.exp(self.mu * (self.reference_time - self.time))
+                        self.time = self.reference_time  
 
-                    self.reference_division_time -= (self.reference_time - self.time)
-                    size *= np.exp(self.mu * (self.reference_time - self.time))
+                        # ___Save Data___ # 
+                        model = self.model_data_for_division(cell=cell, size=self.size, division_time=self.reference_division_time)
 
-                    self.time = self.reference_time  
+                        if self.time_stamp != False:
 
-                    # ___Save Data___ # 
-                    time_array.append(self.time)
-                    mrna_array.append(mRNA)
-                    size_array.append(size)
+                            if self.time >= self.time_stamp: 
+                                writer.writerow(model)
 
+                        else:
+                            writer.writerow(model)
 
-                    self.reference_time += self.sampling_time
+                        self.reference_time += self.sampling_time
 
-            fig, ax1 = plt.subplots()
-
-            ax2 = ax1.twinx()
-            ax1.plot(time_array,size_array, '--',color='black', linewidth=1.5, label='size', alpha=0.7)
-            ax2.plot(time_array,mrna_array,'ro', alpha=0.5, linewidth=0.5, ms=0.5, label='mRNA')
-
-            ax1.set_xlabel('Time(h)')
-            ax1.set_ylabel(r'Size (${\mu}$m)')
-            ax2.set_ylabel('mRNA')
-            plt.title('Implemented Adder')
-            ax2.grid()
-            plt.legend(loc=5)
+                self.reaction_model = copy.deepcopy(self._reaction_model_copy)
+                self.time = 0
+                self.reference_time = 0
+                self.reference_division_time = 0
 
 
     def react(self, reactions):
-
 
         if 'create' not in reactions.keys():
             pass
@@ -286,19 +258,41 @@ class Gillespie:
             pass
 
         elif 'burst' in reactions.keys():
-            create_species = reactions['burst']
-            [self.reaction_model.burst(name=species) for species in create_species if species != None]
+            burst_species = reactions['burst']
+            [self.reaction_model.burst(name=species) for species in burst_species if species != None]
 
+
+        if 'reference_division_time' not in reactions.keys():
+            self.reference_division_time -= self.tau
+        
+        elif 'reference_division_time' in reactions.keys():
+
+            self.size /= 2
+            self.reference_division_time = (1/self.mu) * np.log((self.size + np.random.normal(loc=1, scale=0.05))/self.size)   
+            self.reaction_model.dilute_species() 
+     
 
     def calculate_tau(self, propensity):
-        return  -(1/propensity) * np.log(np.random.rand())
+        warnings.simplefilter("ignore")
+        try:
+            return -(1/propensity) * np.log(np.random.rand())
+
+        except ZeroDivisionError or RuntimeWarning:
+            
+            return 0
 
 
     def calculate_division_tau(self, propensity):
-        return (1/self.mu) * np.log(1 - (self.mu * np.log(np.random.rand())/(propensity * self.size)))
+        warnings.simplefilter("ignore")
+        try:
+            return (1/self.mu) * np.log(1 - (self.mu * np.log(np.random.rand())/(propensity * self.size)))
         
+        except ZeroDivisionError or RuntimeWarning:
+            return 0
+
 
     def extract(self, key, iter_dict, values_to_get='keys'):
+        
         if values_to_get == 'keys':
             return [propensity for propensity, value in iter_dict[key].items()]
         
@@ -343,8 +337,11 @@ class Gillespie:
 
                     create_propensity_type_II = dict(zip(propensity_keys_type_II, propensity_to_create))
 
+        warnings.simplefilter("ignore")
+        
         ultimate_propensities.update(create_propensity_type_I)
         ultimate_propensities.update(create_propensity_type_II)
+        ultimate_propensities.update({'reference_division_time': 0})
 
         return ultimate_propensities
 
@@ -419,14 +416,14 @@ class Gillespie:
         schema = list(schema.keys())
         schema.append('time')
         schema.append('cell')
-        schema.append('size')
+        schema.append('cell_size')
         schema.append('division_time')
         return schema
 
 
     def model_data_for_division(self, cell, size, division_time):
         model = copy.deepcopy(self.reaction_model.species)
-        model.update({'time': round(self.time, 2), 'cell': cell, 'size': size, 'division_time': division_time})
+        model.update({'time': round(self.time, 4), 'cell': cell, 'cell_size': round(size, 4), 'division_time': round(division_time, 4)})
         return model
 
 
@@ -527,6 +524,11 @@ class ReactionModel:
     def burst(self, name=str):
 
         self.species[name] += 100
+
+
+    def degradation_burst(self, name=str):
+
+        self.species[name] -= 10
 
 
     def solve_eqs(self, tau=0):
