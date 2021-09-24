@@ -290,3 +290,282 @@ lacI_model = gs.ReactionModel(
                         'Permease':             ['mRNA', 'Permease', 'Tau'],
                         'LacI_monomer':         ['LacI_monomer', 'Tau']}
                         )
+
+
+repressilator_division = gs.ReactionModel(
+                                species = {
+                                                'tetR': 0,
+                                                'lacI': 0,
+                                                'alphacl': 0,
+                                                'GFP': 0
+                                                },
+
+                                propensities = {
+                                                'kc_tetR': 20 /1.5,
+                                                'kc_lacI': 20 /1.5,
+                                                'kc_alphacl': 20 /1.5,
+                                                'kc_GFP': 20 /1.5,
+
+                                                'kd_tetR': 5 /1.5,
+                                                'kd_lacI': 5 /1.5,
+                                                'kd_alphacl': 5 /1.5,
+                                                'kd_GFP': 5 /1.5,
+                                                
+                                                'kd_tetR_lacI': 0.2,
+                                                'kd_lacI_alphacl': 0.2,
+                                                'kd_alphacl_tetR': 0.2,
+                                                'kd_GFP_tetR': 0.2
+                                                },
+                                
+                                reactions = {
+
+                                                'pc_tetR':      ['kc_tetR'],
+                                                'pc_lacI':      ['kc_lacI'],
+                                                'pc_alphacl':   ['kc_alphacl'],
+                                                'GFP_cre' :     ['kc_GFP'],
+                                                
+
+                                                'PdtetR':       ['kd_tetR'],
+                                                'PdlacI':       ['kd_lacI'],
+                                                'Pdalphacl':    ['kd_alphacl'],
+                                                'GFP_deg':      ['kd_GFP'],
+                                                
+                                                'tetR_deg_lacI' :       ['kd_tetR_lacI', 'lacI'],
+                                                'lacI_deg_alphacl' :    ['kd_lacI_alphacl', 'alphacl'],
+                                                'alphacl_deg_tetR' :    ['kd_alphacl_tetR', 'tetR'],
+                                                'GFP_deg_tetR':         ['kd_GFP_tetR', 'tetR']
+                                                },
+                                
+                                q = {
+                                        'pc_tetR':      {'create' : ['tetR']},
+                                        'pc_lacI':      {'create' : ['lacI']},
+                                        'pc_alphacl':   {'create' : ['alphacl']},
+                                        'GFP_cre':      {'create' : ['GFP']},
+
+                                        'PdtetR':       {'destroy': ['tetR']},
+                                        'PdlacI':       {'destroy': ['lacI']},
+                                        'Pdalphacl':    {'destroy': ['alphacl']},
+                                        'GFP_deg':      {'destroy': ['GFP']},
+
+                                        'tetR_deg_lacI'    : {'destroy': ['tetR']},
+                                        'lacI_deg_alphacl' : {'destroy': ['lacI']},
+                                        'alphacl_deg_tetR' : {'destroy': ['alphacl']},
+                                        'GFP_deg_tetR'     : {'destroy': ['GFP']}
+                                        }
+                                )
+
+
+fixed_repressilator_division = gs.ReactionModel(
+                                species = {
+                                                'tetR': 0,
+                                                'lacI': 0,
+                                                'alphacl': 0,
+                                                'GFP': 0,
+
+                                                # 'tetR_promoter': 1,
+                                                # 'lacI_promoter': 1,
+                                                # 'alphacl_promoter': 1,
+                                                # 'GFP_promoter': 1 
+                                                },
+
+                                propensities = {
+                                                'kc_tetR': 10,
+                                                'kc_lacI': 10,
+                                                'kc_alphacl': 10,
+                                                'kc_GFP': 10,
+
+                                                'kd_tetR': 2.5,
+                                                'kd_lacI': 2.5,
+                                                'kd_alphacl': 2.5,
+                                                'kd_GFP': 2.5,
+                                                
+                                                'kd_tetR_lacI': 0.0585,
+                                                'kd_lacI_alphacl': 0.0585,
+                                                'kd_alphacl_tetR': 0.0585,
+                                                'kd_GFP_tetR': 0.0585
+                                                },
+                                
+                                reactions = {
+
+                                                'pc_tetR':      ['kc_tetR'],
+                                                'pc_lacI':      ['kc_lacI'],
+                                                'pc_alphacl':   ['kc_alphacl'],
+                                                'GFP_cre' :     ['kc_GFP'],
+                                                
+
+                                                'PdtetR':       ['kd_tetR'],
+                                                'PdlacI':       ['kd_lacI'],
+                                                'Pdalphacl':    ['kd_alphacl'],
+                                                'GFP_deg':      ['kd_GFP'],
+                                                
+                                                'tetR_deg_lacI' :       ['kd_tetR_lacI', 'lacI'],
+                                                'lacI_deg_alphacl' :    ['kd_lacI_alphacl', 'alphacl'],
+                                                'alphacl_deg_tetR' :    ['kd_alphacl_tetR', 'tetR'],
+                                                'GFP_deg_tetR':         ['kd_GFP_tetR', 'tetR']
+                                                },
+                                
+                                q = {
+                                        'pc_tetR':      {'create' : ['tetR']},
+                                        'pc_lacI':      {'create' : ['lacI']},
+                                        'pc_alphacl':   {'create' : ['alphacl']},
+                                        'GFP_cre':      {'create' : ['GFP']},
+
+                                        'PdtetR':       {'destroy': ['tetR']},
+                                        'PdlacI':       {'destroy': ['lacI']},
+                                        'Pdalphacl':    {'destroy': ['alphacl']},
+                                        'GFP_deg':      {'destroy': ['GFP']},
+
+                                        'tetR_deg_lacI'    : {'destroy': ['tetR']},
+                                        'lacI_deg_alphacl' : {'destroy': ['lacI']},
+                                        'alphacl_deg_tetR' : {'destroy': ['alphacl']},
+                                        'GFP_deg_tetR'     : {'destroy': ['GFP']}
+                                        }
+                                )
+
+
+def permease_solution(mrna, permease, tau):
+    gamma = 0.0231
+    alpha = 1000
+    k_p = 0.00231
+    yss = ((alpha * k_p * mrna)/gamma)
+    return  yss + (permease - yss) * np.exp(-gamma*tau)
+
+
+def beta(tmg):
+    tmg = tmg
+    return 0.00123 * pow(tmg, 0.6)
+
+
+def intrtmg(beta, permease):
+    return  beta * permease
+
+
+def tetramers(monomers):
+    if monomers > 0:
+        result = monomers/100
+    else:
+        result = 0
+    return result
+   
+
+def activelacI(intrtmg, tetramers):
+    if intrtmg > 0:
+        initialtmg = 0.12
+        n = 2   
+        tetramers = round(tetramers, 4)
+        intrtmg = round(intrtmg, 4)
+        result = round(1/((1 + (intrtmg/initialtmg)**n) * tetramers), 4)
+    else:
+        result = 0
+    return result
+
+    
+
+def monomers(monomers, tau):
+    if monomers >= 0:
+        k_R = 15.4
+        gamma = 0.0231
+        result = (k_R - gamma * monomers)*tau
+    else:
+        result =  0
+    return result
+
+
+def promoter_on(tetramers):
+    if tetramers > 0:
+        R_0 = 0.04
+        lamda_lacI = 15
+        result = lamda_lacI*(R_0/tetramers)
+    else:
+        result = 0
+    return result
+    
+
+def promoter_off(activelacI,tetramers):    
+    if tetramers > 0:
+        lamda_lacI = 15
+        result = lamda_lacI*(activelacI/tetramers)
+    else:
+        result = 0
+    return result
+
+
+
+
+
+lacI_model = gs.ReactionModel(
+
+        species = {
+                'Promoter': 1,
+                'mRNA': 0,
+                'Beta': 0,              
+                'Intracellular_tmg': 0,
+                'LacI_Tetramers': 0,   
+                'Active_LacI': 0,      
+                'Permease': 0,        
+                'LacI_monomer': 0,
+                'TMG': 40,
+                'Promoter_on': 0,
+                'Promoter_off':0},  
+        
+        propensities = {
+                        'kc_mRNA': 2,
+                        'kd_mRNA': np.log(2)/2.5},
+
+        reactions = {
+                        'Transcription':        ['kc_mRNA', 'Promoter'],
+                        'mRNA_Degradation':     ['kd_mRNA', 'mRNA'],
+                        'Promoter_activation':  ['Promoter_on'],
+                        'Promoter_inactivation':['Promoter_off']},
+        
+        q = {
+                'Transcription':         {'create':       ['mRNA']},
+                'mRNA_Degradation':      {'destroy':      ['mRNA']},
+                'Promoter_activation':   {'activate':     ['Promoter']},
+                'Promoter_inactivation': {'deactivate':   ['Promoter']}},
+                
+        math_model= {
+                        'Beta':                beta,
+                        'Intracellular_tmg':   intrtmg,
+                        'LacI_Tetramers':      tetramers,
+                        'Active_LacI':         activelacI,
+                        'Permease':            permease_solution,
+                        'LacI_monomer':        monomers,
+                        'Promoter_on':         promoter_on,
+                        'Promoter_off':        promoter_off},
+
+        parameters = {       
+                        'Beta':                 ['TMG'],
+                        'Intracellular_tmg':    ['Beta', 'Permease'],
+                        'LacI_Tetramers':       ['LacI_monomer'],
+                        'Active_LacI':          ['Intracellular_tmg', 'LacI_Tetramers'],
+                        'Permease':             ['mRNA', 'Permease', 'Tau'],
+                        'LacI_monomer':         ['LacI_monomer', 'Tau'],
+                        'Promoter_on':          ['LacI_Tetramers'],
+                        'Promoter_off':         ['Active_LacI', 'LacI_Tetramers']})
+
+central_dogma = gs.ReactionModel(
+                species = {
+                    'DNA': 1,
+                    'mRNA': 0,
+                    'Protein': 0
+                },
+                propensities = {
+                    'transcription_propensity' : 0.3,
+                    'translation_propensity': 10,
+                    'mRNA_degradation' : np.log(2)/2,
+                    'Protein_degradation' : np.log(2)/60
+                },
+                reactions = {
+                    'transcription' : ['transcription_propensity', 'DNA'],
+                    'translation' :   ['translation_propensity', 'mRNA'],
+                    'mRNA_deg' :      ['mRNA_degradation', 'mRNA'],
+                    'Protein_deg' :   ['Protein_degradation', 'Protein'],
+                },
+                q = {
+                    'transcription' :   {'create_rna' : ['mRNA']},
+                    'translation' :     {'create' : ['Protein']},
+                    'mRNA_deg' :        {'destroy' : ['mRNA']},
+                    'Protein_deg' :     {'destroy' : ['Protein']},
+                }
+)
